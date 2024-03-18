@@ -15,3 +15,67 @@
 	<div style="margin-top:50px;" id="msgContainer"></div>
 </body>
 </html>
+
+// Example for sending a file as base64
+const fileInput = document.getElementById('file-input');
+fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+        const fileData = reader.result.split(',')[1]; // Remove the data URI scheme part
+        socket.emit('file-upload', { fileName: file.name, fileData });
+    };
+    reader.readAsDataURL(file);
+});
+
+
+io.on('connection', (socket) => {
+    socket.on('file-upload', ({ fileName, fileData }) => {
+        // Process the file data (e.g., save it to the server)
+        // For example, saving the file to a folder
+        const filePath = path.join(__dirname, 'uploads', fileName);
+        fs.writeFile(filePath, fileData, 'base64', (err) => {
+            if (err) {
+                console.error('Error saving file:', err);
+            } else {
+                console.log('File saved successfully:', filePath);
+            }
+        });
+    });
+});
+
+socket.on('file-upload', ({ fileName, fileData }) => {
+    // Assuming fileData contains base64-encoded image data
+    const imageElement = document.createElement('img');
+    imageElement.src = 'data:image/png;base64,' + fileData;
+    // Append the image element to the chat window
+    chatWindow.appendChild(imageElement);
+});
+
+
+io.on('connection', (socket) => {
+    socket.on('register', ({ username, password }) => {
+        // Implement user registration logic here
+        if (isValidUsername(username) && isValidPassword(password)) {
+            // Store the user information in a database
+            // Emit a success event to the client
+            socket.emit('registrationSuccess', { username });
+        } else {
+            // Emit a failure event to the client
+            socket.emit('registrationFailure', { message: 'Invalid username or password' });
+        }
+    });
+});
+io.on('connection', (socket) => {
+    socket.on('register', ({ username, password }) => {
+        // Implement user registration logic here
+        if (isValidUsername(username) && isValidPassword(password)) {
+            // Store the user information in a database
+            // Emit a success event to the client
+            socket.emit('registrationSuccess', { username });
+        } else {
+            // Emit a failure event to the client
+            socket.emit('registrationFailure', { message: 'Invalid username or password' });
+        }
+    });
+});
